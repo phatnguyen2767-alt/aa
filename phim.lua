@@ -3,141 +3,83 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
-local camera = workspace.CurrentCamera
 
 local keys = {
+    W = false,
     A = false,
-    Z = false,
-    X = false,
-    LeftShift = false
+    S = false,
+    D = false
 }
 
-local shiftLock = false
+local function setKey(key, state)
+    keys[key] = state
+end
 
--- =========================
--- INPUT
--- =========================
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
 
-UserInputService.InputBegan:Connect(function(input, processed)
-    if processed then return end
-
-    if input.KeyCode == Enum.KeyCode.A then
-        keys.A = true
+    if input.KeyCode == Enum.KeyCode.S then
+        setKey("W", true)
 
     elseif input.KeyCode == Enum.KeyCode.Z then
-        keys.Z = true
+        setKey("A", true)
 
     elseif input.KeyCode == Enum.KeyCode.X then
-        keys.X = true
+        setKey("S", true)
 
-    elseif input.KeyCode == Enum.KeyCode.LeftShift then
-        keys.LeftShift = true
-
-    elseif input.KeyCode == Enum.KeyCode.RightShift then
-        shiftLock = not shiftLock
+    elseif input.KeyCode == Enum.KeyCode.C then
+        setKey("D", true)
     end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.A then
-        keys.A = false
+    if input.KeyCode == Enum.KeyCode.S then
+        setKey("W", false)
 
     elseif input.KeyCode == Enum.KeyCode.Z then
-        keys.Z = false
+        setKey("A", false)
 
     elseif input.KeyCode == Enum.KeyCode.X then
-        keys.X = false
+        setKey("S", false)
 
-    elseif input.KeyCode == Enum.KeyCode.LeftShift then
-        keys.LeftShift = false
+    elseif input.KeyCode == Enum.KeyCode.C then
+        setKey("D", false)
     end
 end)
-
--- =========================
--- MOVEMENT
--- =========================
 
 RunService.RenderStepped:Connect(function()
     local character = player.Character
     if not character then return end
 
     local humanoid = character:FindFirstChildOfClass("Humanoid")
-    local root = character:FindFirstChild("HumanoidRootPart")
+    if not humanoid then return end
 
-    if not humanoid or not root then return end
+    local camera = workspace.CurrentCamera
+    if not camera then return end
 
-    local cam = workspace.CurrentCamera
-    if not cam then return end
+    local direction = Vector3.zero
 
-    local forward = Vector3.new(
-        cam.CFrame.LookVector.X,
-        0,
-        cam.CFrame.LookVector.Z
-    )
-
-    local right = Vector3.new(
-        cam.CFrame.RightVector.X,
-        0,
-        cam.CFrame.RightVector.Z
-    )
-
-    if forward.Magnitude > 0 then
-        forward = forward.Unit
+    if keys.W then
+        direction += camera.CFrame.LookVector
     end
 
-    if right.Magnitude > 0 then
-        right = right.Unit
+    if keys.S then
+        direction -= camera.CFrame.LookVector
     end
 
-    local moveDirection = Vector3.zero
-
-    -- A
-    -- Không giữ Shift trái = đi tới
-    -- Giữ Shift trái = đi trái
     if keys.A then
-        if keys.LeftShift then
-            moveDirection -= right
-        else
-            moveDirection += forward
-        end
+        direction -= camera.CFrame.RightVector
     end
 
-    -- Z = đi lùi
-    if keys.Z then
-        moveDirection -= forward
+    if keys.D then
+        direction += camera.CFrame.RightVector
     end
 
-    -- X = sang phải
-    if keys.X then
-        moveDirection += right
-    end
+    direction = Vector3.new(direction.X, 0, direction.Z)
 
-    if moveDirection.Magnitude > 0 then
-        humanoid:Move(moveDirection.Unit, false)
+    if direction.Magnitude > 0 then
+        humanoid:Move(direction.Unit, false)
     else
         humanoid:Move(Vector3.zero, false)
-    end
-
-    -- =========================
-    -- SHIFT LOCK - RIGHT SHIFT
-    -- =========================
-
-    if shiftLock then
-        humanoid.AutoRotate = false
-
-        local look = Vector3.new(
-            cam.CFrame.LookVector.X,
-            0,
-            cam.CFrame.LookVector.Z
-        )
-
-        if look.Magnitude > 0 then
-            root.CFrame = CFrame.lookAt(
-                root.Position,
-                root.Position + look.Unit
-            )
-        end
-    else
-        humanoid.AutoRotate = true
     end
 end)
