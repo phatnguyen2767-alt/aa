@@ -1,51 +1,38 @@
-local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
+local CAS = game:GetService("ContextActionService")
 
-local player = Players.LocalPlayer
-
-local keys = {
-    W = false,
-    A = false,
-    S = false,
-    D = false
+local keyMap = {
+    [Enum.KeyCode.S] = Enum.KeyCode.W,
+    [Enum.KeyCode.Z] = Enum.KeyCode.A,
+    [Enum.KeyCode.X] = Enum.KeyCode.S,
+    [Enum.KeyCode.C] = Enum.KeyCode.D,
+    [Enum.KeyCode.A] = Enum.KeyCode.Q,
 }
 
-local function setKey(key, state)
-    keys[key] = state
-end
+-- Lưu trạng thái phím
+local held = {}
 
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed then return end
 
-    if input.KeyCode == Enum.KeyCode.S then
-        setKey("W", true)
-
-    elseif input.KeyCode == Enum.KeyCode.Z then
-        setKey("A", true)
-
-    elseif input.KeyCode == Enum.KeyCode.X then
-        setKey("S", true)
-
-    elseif input.KeyCode == Enum.KeyCode.C then
-        setKey("D", true)
+    local mapped = keyMap[input.KeyCode]
+    if mapped then
+        held[mapped] = true
     end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.S then
-        setKey("W", false)
-
-    elseif input.KeyCode == Enum.KeyCode.Z then
-        setKey("A", false)
-
-    elseif input.KeyCode == Enum.KeyCode.X then
-        setKey("S", false)
-
-    elseif input.KeyCode == Enum.KeyCode.C then
-        setKey("D", false)
+    local mapped = keyMap[input.KeyCode]
+    if mapped then
+        held[mapped] = false
     end
 end)
+
+-- Điều khiển nhân vật
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
 
 RunService.RenderStepped:Connect(function()
     local character = player.Character
@@ -57,28 +44,28 @@ RunService.RenderStepped:Connect(function()
     local camera = workspace.CurrentCamera
     if not camera then return end
 
-    local direction = Vector3.zero
+    local dir = Vector3.zero
 
-    if keys.W then
-        direction += camera.CFrame.LookVector
+    if held[Enum.KeyCode.W] then
+        dir += camera.CFrame.LookVector
     end
 
-    if keys.S then
-        direction -= camera.CFrame.LookVector
+    if held[Enum.KeyCode.S] then
+        dir -= camera.CFrame.LookVector
     end
 
-    if keys.A then
-        direction -= camera.CFrame.RightVector
+    if held[Enum.KeyCode.A] then
+        dir -= camera.CFrame.RightVector
     end
 
-    if keys.D then
-        direction += camera.CFrame.RightVector
+    if held[Enum.KeyCode.D] then
+        dir += camera.CFrame.RightVector
     end
 
-    direction = Vector3.new(direction.X, 0, direction.Z)
+    dir = Vector3.new(dir.X, 0, dir.Z)
 
-    if direction.Magnitude > 0 then
-        humanoid:Move(direction.Unit, false)
+    if dir.Magnitude > 0 then
+        humanoid:Move(dir.Unit, false)
     else
         humanoid:Move(Vector3.zero, false)
     end
