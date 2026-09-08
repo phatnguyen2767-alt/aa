@@ -1,16 +1,65 @@
-local UIS = game:GetService("UserInputService")
-local VIM = game:GetService("VirtualInputManager")
+local Players = game:GetService("Players")
+local ContextActionService = game:GetService("ContextActionService")
 
-UIS.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
+local player = Players.LocalPlayer
 
-    if input.KeyCode == Enum.KeyCode.Q then
-        VIM:SendKeyEvent(true, Enum.KeyCode.W, false, game)
-    end
-end)
+local function getHumanoid()
+	local character = player.Character or player.CharacterAdded:Wait()
+	return character:WaitForChild("Humanoid")
+end
 
-UIS.InputEnded:Connect(function(input, gameProcessed)
-    if input.KeyCode == Enum.KeyCode.Q then
-        VIM:SendKeyEvent(false, Enum.KeyCode.W, false, game)
-    end
+local function moveAction(actionName, inputState)
+	local humanoid = getHumanoid()
+
+	if inputState == Enum.UserInputState.Begin
+		or inputState == Enum.UserInputState.Change then
+
+		if actionName == "MoveForward" then
+			humanoid:Move(Vector3.new(0, 0, -1), true)
+		elseif actionName == "MoveLeft" then
+			humanoid:Move(Vector3.new(-1, 0, 0), true)
+		elseif actionName == "MoveBack" then
+			humanoid:Move(Vector3.new(0, 0, 1), true)
+		elseif actionName == "MoveRight" then
+			humanoid:Move(Vector3.new(1, 0, 0), true)
+		end
+
+	elseif inputState == Enum.UserInputState.End then
+		humanoid:Move(Vector3.zero, true)
+	end
+
+	return Enum.ContextActionResult.Sink
+end
+
+ContextActionService:BindAction(
+	"MoveForward",
+	moveAction,
+	false,
+	Enum.KeyCode.S
+)
+
+ContextActionService:BindAction(
+	"MoveLeft",
+	moveAction,
+	false,
+	Enum.KeyCode.Z
+)
+
+ContextActionService:BindAction(
+	"MoveBack",
+	moveAction,
+	false,
+	Enum.KeyCode.X
+)
+
+ContextActionService:BindAction(
+	"MoveRight",
+	moveAction,
+	false,
+	Enum.KeyCode.C
+)
+
+player.CharacterAdded:Connect(function()
+	task.wait(0.2)
+	getHumanoid()
 end)
