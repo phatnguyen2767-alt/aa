@@ -1,65 +1,26 @@
-local Players = game:GetService("Players")
-local ContextActionService = game:GetService("ContextActionService")
+local UserInputService = game:GetService("UserInputService")
 
-local player = Players.LocalPlayer
+local keyMap = {
+	[Enum.KeyCode.Z] = Enum.KeyCode.A,
+	[Enum.KeyCode.X] = Enum.KeyCode.S,
+	[Enum.KeyCode.C] = Enum.KeyCode.D
+}
 
-local function getHumanoid()
-	local character = player.Character or player.CharacterAdded:Wait()
-	return character:WaitForChild("Humanoid")
-end
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
 
-local function moveAction(actionName, inputState)
-	local humanoid = getHumanoid()
+	local newKey = keyMap[input.KeyCode]
 
-	if inputState == Enum.UserInputState.Begin
-		or inputState == Enum.UserInputState.Change then
-
-		if actionName == "MoveForward" then
-			humanoid:Move(Vector3.new(0, 0, -1), true)
-		elseif actionName == "MoveLeft" then
-			humanoid:Move(Vector3.new(-1, 0, 0), true)
-		elseif actionName == "MoveBack" then
-			humanoid:Move(Vector3.new(0, 0, 1), true)
-		elseif actionName == "MoveRight" then
-			humanoid:Move(Vector3.new(1, 0, 0), true)
-		end
-
-	elseif inputState == Enum.UserInputState.End then
-		humanoid:Move(Vector3.zero, true)
+	if newKey then
+		-- giả lập phím tương ứng
+		keybd_event(newKey.Value, 0, 0, 0)
 	end
+end)
 
-	return Enum.ContextActionResult.Sink
-end
+UserInputService.InputEnded:Connect(function(input)
+	local newKey = keyMap[input.KeyCode]
 
-ContextActionService:BindAction(
-	"MoveForward",
-	moveAction,
-	false,
-	Enum.KeyCode.S
-)
-
-ContextActionService:BindAction(
-	"MoveLeft",
-	moveAction,
-	false,
-	Enum.KeyCode.Z
-)
-
-ContextActionService:BindAction(
-	"MoveBack",
-	moveAction,
-	false,
-	Enum.KeyCode.X
-)
-
-ContextActionService:BindAction(
-	"MoveRight",
-	moveAction,
-	false,
-	Enum.KeyCode.C
-)
-
-player.CharacterAdded:Connect(function()
-	task.wait(0.2)
-	getHumanoid()
+	if newKey then
+		keybd_event(newKey.Value, 0, 2, 0)
+	end
 end)
