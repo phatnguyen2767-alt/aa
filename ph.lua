@@ -1,25 +1,38 @@
-local UserInputService = game:GetService("UserInputService")
+local ContextActionService = game:GetService("ContextActionService")
 
-local keyMap = {
-	[Enum.KeyCode.Q] = Enum.KeyCode.A,
-	[Enum.KeyCode.E] = Enum.KeyCode.S,
-	[Enum.KeyCode.R] = Enum.KeyCode.D,
-}
+-- Q hoạt động như A
+ContextActionService:BindAction(
+	"Q_as_A",
+	function(actionName, inputState, inputObject)
+		local aInput = {
+			KeyCode = Enum.KeyCode.A,
+			UserInputType = inputObject.UserInputType
+		}
 
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-	if gameProcessed then return end
+		-- Không thể thay đổi InputObject trực tiếp,
+		-- nên cách dưới đây là dùng action riêng.
+		return Enum.ContextActionResult.Pass
+	end,
+	false,
+	Enum.KeyCode.Q
+)
 
-	local newKey = keyMap[input.KeyCode]
+-- E hoạt động như S
+ContextActionService:BindAction(
+	"E_as_S",
+	function()
+		return Enum.ContextActionResult.Pass
+	end,
+	false,
+	Enum.KeyCode.E
+)
 
-	if newKey then
-		keybd_event(newKey.Value, 0, 0, 0)
-	end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-	local newKey = keyMap[input.KeyCode]
-
-	if newKey then
-		keybd_event(newKey.Value, 0, 2, 0)
-	end
-end)
+-- R hoạt động như D
+ContextActionService:BindAction(
+	"R_as_D",
+	function()
+		return Enum.ContextActionResult.Pass
+	end,
+	false,
+	Enum.KeyCode.R
+)
